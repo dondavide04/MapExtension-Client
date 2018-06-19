@@ -10,10 +10,14 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -26,6 +30,7 @@ public class Kmeans extends Application {
 
 	public void start(Stage primaryStage) {
 		TabPane tabPane = new TabPane();
+		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		TextField tabName = new TextField();
 		TextField nCluster = new TextField();
 		TextField fileName = new TextField();
@@ -35,15 +40,24 @@ public class Kmeans extends Application {
 		dbTabUp.getChildren().add(fileName);
 		dbTab = new OutputTab(dbTabUp, "MINE", (e) -> {
 			try {
-				URL url = new URL("http://172.26.243.58:8080/MAP-Servlet/Servlet?command=DB&tabName="
-						+ tabName.getText() + "&nCluster=" + nCluster.getText());
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
-				String result = (String) in.readObject();
-				if (result.startsWith("Errore")) {
-					new TextInputDialog(result).showAndWait();
+				String file = fileName.getText();
+				String regularExpression = "[a-zA-Z[0-9]]+";
+				if(file.matches(regularExpression)) {
+					URL url = new URL("http://172.26.243.58:8080/MAP-Servlet/Servlet?command=DB&tabName="
+							+ tabName.getText() + "&nCluster=" + nCluster.getText() + "&fileName=" + file);
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+					String result = (String) in.readObject();
+					in.close();
+					if (result.startsWith("Errore")) {
+						new TextInputDialog(result).showAndWait();
+					} else {
+						dbTab.clusterOutput.setText(result);
+					}
 				} else {
-					dbTab.clusterOutput.setText(result);
+					Alert alert = new Alert(AlertType.INFORMATION);
+					alert.setHeaderText("MUORI");
+					alert.showAndWait();
 				}
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
@@ -55,7 +69,6 @@ public class Kmeans extends Application {
 		// fileTabUp.getChildren().add();
 		tabPane.getTabs().add(dbTab);
 		// tabPane.getTabs().add(fileTab);
-
 
 		Scene s = new Scene(tabPane, 300, 300);
 		primaryStage.setScene(s);
