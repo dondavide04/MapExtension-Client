@@ -65,23 +65,29 @@ public class Kmeans extends Application {
 				String file = fileName.getText();
 				String regularExpression = "[a-zA-Z[0-9]]+";
 				if (file.matches(regularExpression)) {
-					URL url = new URL("http://172.26.243.58:8080/MAP-Servlet/Servlet?command=DB&tabName="
+					URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=DB&tabName="
 							+ tabName.getText() + "&nCluster=" + nCluster.getText() + "&fileName=" + file);
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 					ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
-					String result = (String) in.readObject();
+					String[] result = (String[]) in.readObject();
 					in.close();
-					if (result.startsWith("Errore")) {
+					if (result[0].startsWith("Errore")) {
 						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setHeaderText(result);
+						alert.setHeaderText(result[0]);
 						alert.setTitle("ERRORE");
 						alert.showAndWait();
+					} else if (result[0].startsWith("Attenzione")) {
+						Alert alert = new Alert(AlertType.INFORMATION);
+						alert.setHeaderText(result[0]);
+						alert.setTitle("ATTENZIONE");
+						alert.showAndWait();
+						dbTab.clusterOutput.setText(result[1]);
 					} else {
-						dbTab.clusterOutput.setText(result);
+						dbTab.clusterOutput.setText(result[1]);
 					}
 				} else {
 					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setHeaderText("Il nome deve essere una stringa alfanumerica!");
+					alert.setHeaderText("Il nome del file deve essere una stringa alfanumerica!");
 					alert.setTitle("ERRORE");
 					alert.showAndWait();
 				}
@@ -92,24 +98,30 @@ public class Kmeans extends Application {
 		dbTab.setText("DB");
 		tabPane.getTabs().add(dbTab);
 
-		ComboBox<String> fileTabUp = new ComboBox<String>();
-		fileTabUp.setPrefSize(125, 20);
-		fileTabUp.setOnMouseClicked(e -> {
+		FlowPane fileTabUp = new FlowPane();
+		fileTabUp.setAlignment(Pos.CENTER);
+		fileTabUp.setHgap(7);
+		Label fileBoxLabel = new Label("File da caricare:");
+		ComboBox<String> fileBox = new ComboBox<String>();
+		fileBox.setPrefSize(125, 20);
+		fileBox.setOnMouseClicked(e -> {
 			try {
-				URL url = new URL("http://172.26.243.58:8080/MAP-Servlet/Servlet?command=SAVED");
+				URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=SAVED");
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
 				String[] saved = (String[]) in.readObject();
 				in.close();
-				fileTabUp.getItems().setAll(saved);
+				fileBox.getItems().setAll(saved);
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
 			}
 		});
+		fileTabUp.getChildren().add(fileBoxLabel);
+		fileTabUp.getChildren().add(fileBox);
 		fileTab = new OutputTab(fileTabUp, "STORE FROM FILE", e -> {
 			try {
-				URL url = new URL(
-						"http://172.26.243.58:8080/MAP-Servlet/Servlet?command=FILE&fileName=" + fileTabUp.getValue());
+				URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=FILE&fileName="
+						+ fileBox.getValue());
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
 				String result = (String) in.readObject();
@@ -123,13 +135,16 @@ public class Kmeans extends Application {
 					fileTab.clusterOutput.setText(result);
 				}
 			} catch (IOException | ClassNotFoundException e1) {
-				e1.printStackTrace();
+				Alert alert = new Alert(AlertType.INFORMATION);
+				alert.setHeaderText("Errore nel caricamento da file!");
+				alert.setTitle("ERRORE");
+				alert.showAndWait();
 			}
 		});
 		fileTab.setText("FILE");
 		tabPane.getTabs().add(fileTab);
 
-		Scene s = new Scene(tabPane, 720, 300);
+		Scene s = new Scene(tabPane, 720, 500);
 		primaryStage.setMinWidth(720);
 		primaryStage.setMinHeight(300);
 		primaryStage.setScene(s);
@@ -164,10 +179,12 @@ public class Kmeans extends Application {
 			root.setVgap(20);
 			ColumnConstraints c = new ColumnConstraints();
 			c.setPercentWidth(100);
-			RowConstraints r = new RowConstraints();
-			r.setPercentHeight(33);
-			root.getRowConstraints().addAll(r, r, r);
 			root.getColumnConstraints().add(c);
+			RowConstraints r25 = new RowConstraints();
+			RowConstraints r50 = new RowConstraints();
+			r25.setPercentHeight(25);
+			r50.setPercentHeight(50);
+			root.getRowConstraints().addAll(r25, r50, r25);
 			this.setContent(root);
 			this.setClosable(false);
 		}
