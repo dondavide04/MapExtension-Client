@@ -21,20 +21,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -42,6 +37,7 @@ import javafx.stage.Stage;
 
 public class Kmeans extends Application {
 	private OutputTab dbTab, fileTab;
+	private Connection connection = new Connection();
 
 	public void start(Stage primaryStage) {
 		TabPane tabPane = new TabPane();
@@ -65,34 +61,23 @@ public class Kmeans extends Application {
 				String file = fileName.getText();
 				String regularExpression = "[a-zA-Z[0-9]]+";
 				if (file.matches(regularExpression)) {
-					URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=DB&tabName="
-							+ tabName.getText() + "&nCluster=" + nCluster.getText() + "&fileName=" + file);
-					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-					ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+					ObjectInputStream in = connection.getConnectionStream("?command=DB&tabName=" + tabName.getText()
+							+ "&nCluster=" + nCluster.getText() + "&fileName=" + file);
 					String[] result = (String[]) in.readObject();
 					in.close();
 					if (result[0].startsWith("Errore")) {
-						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setHeaderText(result[0]);
-						alert.setTitle("ERRORE");
-						alert.showAndWait();
+						showAlert(result[0],"ERRORE");
 					} else if (result[0].startsWith("Attenzione")) {
-						Alert alert = new Alert(AlertType.INFORMATION);
-						alert.setHeaderText(result[0]);
-						alert.setTitle("ATTENZIONE");
-						alert.showAndWait();
+						showAlert(result[0],"ATTENZIONE");
 						dbTab.clusterOutput.setText(result[1]);
 					} else {
 						dbTab.clusterOutput.setText(result[1]);
 					}
 				} else {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setHeaderText("Il nome del file deve essere una stringa alfanumerica!");
-					alert.setTitle("ERRORE");
-					alert.showAndWait();
+					showAlert("Il nome del file deve essere una stringa alfanumerica!","ERRORE");
 				}
-			} catch (IOException | ClassNotFoundException e1) {
-				e1.printStackTrace();
+			} catch (IOException | ClassNotFoundException | ServerConnectionFailedException e1) {
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
 		dbTab.setText("DB");
@@ -106,39 +91,32 @@ public class Kmeans extends Application {
 		fileBox.setPrefSize(125, 20);
 		fileBox.setOnMouseClicked(e -> {
 			try {
-				URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=SAVED");
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+				ObjectInputStream in = connection.getConnectionStream("?command=SAVED");
 				String[] saved = (String[]) in.readObject();
 				in.close();
 				fileBox.getItems().setAll(saved);
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
+			} catch (ServerConnectionFailedException e1) {
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
 		fileTabUp.getChildren().add(fileBoxLabel);
 		fileTabUp.getChildren().add(fileBox);
 		fileTab = new OutputTab(fileTabUp, "STORE FROM FILE", e -> {
 			try {
-				URL url = new URL("http://172.26.243.58:8080/MAPE%20-%20Servlet/Servlet?command=FILE&fileName="
-						+ fileBox.getValue());
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				ObjectInputStream in = new ObjectInputStream(conn.getInputStream());
+				ObjectInputStream in = connection.getConnectionStream("?command=FILE&fileName=" + fileBox.getValue());
 				String result = (String) in.readObject();
 				in.close();
 				if (result.startsWith("Errore")) {
-					Alert alert = new Alert(AlertType.INFORMATION);
-					alert.setHeaderText(result);
-					alert.setTitle("ERRORE");
-					alert.showAndWait();
+					showAlert(result,"ERRORE");
 				} else {
 					fileTab.clusterOutput.setText(result);
 				}
 			} catch (IOException | ClassNotFoundException e1) {
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setHeaderText("Errore nel caricamento da file!");
-				alert.setTitle("ERRORE");
-				alert.showAndWait();
+				showAlert("Errore nel caricamento da file!","ERRORE");
+			} catch (ServerConnectionFailedException e1) {
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
 		fileTab.setText("FILE");
@@ -189,6 +167,13 @@ public class Kmeans extends Application {
 			this.setClosable(false);
 		}
 
+	}
+	
+	private void showAlert(String message,String title) {
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setHeaderText(message);
+		alert.setTitle(title);
+		alert.showAndWait();
 	}
 
 }
