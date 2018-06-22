@@ -14,10 +14,8 @@ import java.net.URL;
  *
  */
 class Connection {
-	final private String unibaIp = "172.26.243.58";
-	final private String hotSpotIp = "192.168.43.254";
-	final private String homeIp = "";
-	final private String port = "8080";
+	private String ip = "172.26.243.58";
+	private String port = "8080";
 	final private String servletUrl = "MAPE%20-%20Servlet/Servlet";
 
 	ObjectInputStream getConnectionStream(String parameters) throws ServerConnectionFailedException {
