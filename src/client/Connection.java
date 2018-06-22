@@ -23,21 +23,21 @@ class Connection {
 		URL url;
 		HttpURLConnection conn;
 		try {
-			url = new URL("http://" + unibaIp + ":" + port + "/" + servletUrl + parameters);
+			url = new URL("http://" + ip + ":" + port + "/" + servletUrl + parameters);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setConnectTimeout(2000);
 			conn.connect();
 			in = new ObjectInputStream(conn.getInputStream());
 		} catch (IOException e) {
 			try {
-				url = new URL("http://" + hotSpotIp + ":" + port + "/" + servletUrl + parameters);
+				url = new URL("http://" + ip + ":" + port + "/" + servletUrl + parameters);
 				conn = (HttpURLConnection) url.openConnection();
 				conn.setConnectTimeout(2000);
 				conn.connect();
 				in = new ObjectInputStream(conn.getInputStream());
 			} catch (IOException e1) {
 				try {
-					url = new URL("http://" + homeIp + ":" + port + "/" + servletUrl + parameters);
+					url = new URL("http://" + ip + ":" + port + "/" + servletUrl + parameters);
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setConnectTimeout(2000);
 					conn.connect();
