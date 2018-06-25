@@ -30,7 +30,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 public class Kmeans extends Application {
-	private OutputTab dbTab, fileTab;
+	private OutputTab dbTab, loadTab;
 	private Connection connection = new Connection();
 
 	public void start(Stage primaryStage) {
@@ -42,79 +42,79 @@ public class Kmeans extends Application {
 		Label tabNameLabel = new Label("Nome tabella: ");
 		TextField nCluster = new TextField();
 		Label nClusterLabel = new Label("Num Cluster: ");
-		TextField fileName = new TextField();
-		Label fileNameLabel = new Label("Nome file: ");
+		TextField saveName = new TextField();
+		Label saveNameLabel = new Label("Nome salvataggio: ");
 		dbTabUp.getChildren().add(tabNameLabel);
 		dbTabUp.getChildren().add(tabName);
 		dbTabUp.getChildren().add(nClusterLabel);
 		dbTabUp.getChildren().add(nCluster);
-		dbTabUp.getChildren().add(fileNameLabel);
-		dbTabUp.getChildren().add(fileName);
+		dbTabUp.getChildren().add(saveNameLabel);
+		dbTabUp.getChildren().add(saveName);
 		dbTab = new OutputTab(dbTabUp, "MINE", e -> {
 			try {
-				String file = fileName.getText();
+				String save = saveName.getText();
 				String regularExpression = "[a-zA-Z[0-9]]+";
-				if (file.matches(regularExpression)) {
+				if (save.matches(regularExpression)) {
 					ObjectInputStream in = connection.getConnectionStream("?command=DB&tabName=" + tabName.getText()
-							+ "&nCluster=" + nCluster.getText() + "&fileName=" + file);
+							+ "&nCluster=" + nCluster.getText() + "&saveName=" + save);
 					String[] result = (String[]) in.readObject();
 					in.close();
 					if (result[0].startsWith("Errore")) {
-						showAlert(result[0], "ERRORE");
+						showAlert(result[0],"ERRORE");
 					} else if (result[0].startsWith("Attenzione")) {
-						showAlert(result[0], "ATTENZIONE");
+						showAlert(result[0],"ATTENZIONE");
 						dbTab.clusterOutput.setText(result[1]);
 					} else {
 						dbTab.clusterOutput.setText(result[1]);
 					}
 				} else {
-					showAlert("Il nome del file deve essere una stringa alfanumerica!", "ERRORE");
+					showAlert("Il nome del salvataggio deve essere una stringa alfanumerica!","ERRORE");
 				}
 			} catch (IOException | ClassNotFoundException | ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!", "ERRORE");
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
 		dbTab.setText("DB");
 		tabPane.getTabs().add(dbTab);
 
-		FlowPane fileTabUp = new FlowPane();
-		fileTabUp.setAlignment(Pos.CENTER);
-		fileTabUp.setHgap(7);
-		Label fileBoxLabel = new Label("File da caricare:");
-		ComboBox<String> fileBox = new ComboBox<String>();
-		fileBox.setPrefSize(125, 20);
-		fileBox.setOnMouseClicked(e -> {
+		FlowPane loadTabUp = new FlowPane();
+		loadTabUp.setAlignment(Pos.CENTER);
+		loadTabUp.setHgap(7);
+		Label loadBoxLabel = new Label("salvataggio da caricare:");
+		ComboBox<String> loadBox = new ComboBox<String>();
+		loadBox.setPrefSize(125, 20);
+		loadBox.setOnMouseClicked(e -> {
 			try {
 				ObjectInputStream in = connection.getConnectionStream("?command=SAVED");
 				String[] saved = (String[]) in.readObject();
 				in.close();
-				fileBox.getItems().setAll(saved);
+				loadBox.getItems().setAll(saved);
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
 			} catch (ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!", "ERRORE");
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
-		fileTabUp.getChildren().add(fileBoxLabel);
-		fileTabUp.getChildren().add(fileBox);
-		fileTab = new OutputTab(fileTabUp, "STORE FROM FILE", e -> {
+		loadTabUp.getChildren().add(loadBoxLabel);
+		loadTabUp.getChildren().add(loadBox);
+		loadTab = new OutputTab(loadTabUp, "LOAD", e -> {
 			try {
-				ObjectInputStream in = connection.getConnectionStream("?command=FILE&fileName=" + fileBox.getValue());
+				ObjectInputStream in = connection.getConnectionStream("?command=LOAD&loadName=" + loadBox.getValue());
 				String result = (String) in.readObject();
 				in.close();
 				if (result.startsWith("Errore")) {
-					showAlert(result, "ERRORE");
+					showAlert(result,"ERRORE");
 				} else {
-					fileTab.clusterOutput.setText(result);
+					loadTab.clusterOutput.setText(result);
 				}
 			} catch (IOException | ClassNotFoundException e1) {
-				showAlert("Errore nel caricamento da file!", "ERRORE");
+				showAlert("Errore nel caricamento!","ERRORE");
 			} catch (ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!", "ERRORE");
+				showAlert("Errore di connessione con il server!","ERRORE");
 			}
 		});
-		fileTab.setText("FILE");
-		tabPane.getTabs().add(fileTab);
+		loadTab.setText("LOAD");
+		tabPane.getTabs().add(loadTab);
 
 		Scene s = new Scene(tabPane, 720, 500);
 		primaryStage.setMinWidth(720);
@@ -162,8 +162,8 @@ public class Kmeans extends Application {
 		}
 
 	}
-
-	private void showAlert(String message, String title) {
+	
+	private void showAlert(String message,String title) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setHeaderText(message);
 		alert.setTitle(title);
