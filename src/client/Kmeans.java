@@ -2,17 +2,11 @@ package client;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -66,18 +60,18 @@ public class Kmeans extends Application {
 					String[] result = (String[]) in.readObject();
 					in.close();
 					if (result[0].startsWith("Errore")) {
-						showAlert(result[0],"ERRORE");
+						showAlert(result[0], "ERRORE");
 					} else if (result[0].startsWith("Attenzione")) {
-						showAlert(result[0],"ATTENZIONE");
+						showAlert(result[0], "ATTENZIONE");
 						dbTab.clusterOutput.setText(result[1]);
 					} else {
 						dbTab.clusterOutput.setText(result[1]);
 					}
 				} else {
-					showAlert("Il nome del file deve essere una stringa alfanumerica!","ERRORE");
+					showAlert("Il nome del file deve essere una stringa alfanumerica!", "ERRORE");
 				}
 			} catch (IOException | ClassNotFoundException | ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!","ERRORE");
+				showAlert("Errore di connessione con il server!", "ERRORE");
 			}
 		});
 		dbTab.setText("DB");
@@ -98,7 +92,7 @@ public class Kmeans extends Application {
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
 			} catch (ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!","ERRORE");
+				showAlert("Errore di connessione con il server!", "ERRORE");
 			}
 		});
 		fileTabUp.getChildren().add(fileBoxLabel);
@@ -109,14 +103,14 @@ public class Kmeans extends Application {
 				String result = (String) in.readObject();
 				in.close();
 				if (result.startsWith("Errore")) {
-					showAlert(result,"ERRORE");
+					showAlert(result, "ERRORE");
 				} else {
 					fileTab.clusterOutput.setText(result);
 				}
 			} catch (IOException | ClassNotFoundException e1) {
-				showAlert("Errore nel caricamento da file!","ERRORE");
+				showAlert("Errore nel caricamento da file!", "ERRORE");
 			} catch (ServerConnectionFailedException e1) {
-				showAlert("Errore di connessione con il server!","ERRORE");
+				showAlert("Errore di connessione con il server!", "ERRORE");
 			}
 		});
 		fileTab.setText("FILE");
@@ -168,8 +162,8 @@ public class Kmeans extends Application {
 		}
 
 	}
-	
-	private void showAlert(String message,String title) {
+
+	private void showAlert(String message, String title) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setHeaderText(message);
 		alert.setTitle(title);
