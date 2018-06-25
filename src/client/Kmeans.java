@@ -30,10 +30,25 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
+/**
+ * La classe Kmeans modella l'interfaccia dell'applicazione.
+ */
 public class Kmeans extends Application {
+	/**
+	 * La tab relativa al calcolo da database.
+	 */
+	/**
+	 * La tab relativa al caricamento.
+	 */
 	private OutputTab dbTab, loadTab;
+	/**
+	 * La connessione al server.
+	 */
 	private Connection connection = new Connection();
 
+	/**
+	 * @see javafx.application.Application#start(javafx.stage.Stage)
+	 */
 	public void start(Stage primaryStage) {
 		TabPane tabPane = new TabPane();
 		FlowPane dbTabUp = new FlowPane();
@@ -55,7 +70,7 @@ public class Kmeans extends Application {
 			try {
 				String save = saveName.getText();
 				String regularExpression = "[a-zA-Z[0-9]]+";
-				if (save.matches(regularExpression)) {
+				if (save.matches(regularExpression) && save.length() <= 50) {
 					ObjectInputStream in = connection.getConnectionStream("?command=DB&tabName=" + tabName.getText()
 							+ "&nCluster=" + nCluster.getText() + "&saveName=" + save);
 					String[] result = (String[]) in.readObject();
@@ -69,7 +84,7 @@ public class Kmeans extends Application {
 						dbTab.clusterOutput.setText(result[1]);
 					}
 				} else {
-					showAlert("Il nome del salvataggio deve essere una stringa alfanumerica!", "ERRORE");
+					showAlert("Il nome del salvataggio deve essere una stringa alfanumerica (max 50 char)!", "ERRORE");
 				}
 			} catch (IOException | ClassNotFoundException | ServerConnectionFailedException e1) {
 				showAlert("Errore di connessione con il server!", "ERRORE");
@@ -81,7 +96,7 @@ public class Kmeans extends Application {
 		FlowPane loadTabUp = new FlowPane();
 		loadTabUp.setAlignment(Pos.CENTER);
 		loadTabUp.setHgap(7);
-		Label loadBoxLabel = new Label("salvataggio da caricare:");
+		Label loadBoxLabel = new Label("Salvataggio da caricare:");
 		ComboBox<String> loadBox = new ComboBox<String>();
 		loadBox.setPrefSize(125, 20);
 		loadBox.setOnMouseClicked(e -> {
@@ -126,15 +141,33 @@ public class Kmeans extends Application {
 		primaryStage.show();
 	}
 
-	public static void main(String[] args) {
-		launch();
-	}
-
+	/**
+	 * La inner class OutputTab modella la singola tab dell'interfaccia.
+	 */
 	private class OutputTab extends Tab {
+		/**
+		 * Il pannello principale della tab.
+		 */
 		private GridPane root = new GridPane();
+		/**
+		 * Il bottone per l'esecuzione.
+		 */
 		private Button executeButton = new Button();
+		/**
+		 * La text area per visualizzare l'output dell'esecuzione.
+		 */
 		private TextArea clusterOutput = new TextArea();
 
+		/**
+		 * Il costruttore della classe. Setta il layout per il contenuto della tab.
+		 * 
+		 * @param n
+		 *            Il nodo da inserire nel primo terzo del pannello principale.
+		 * @param button
+		 *            Il testo da visualizzare nel bottone.
+		 * @param event
+		 *            L'evento associato al bottone.
+		 */
 		OutputTab(Node n, String button, EventHandler<ActionEvent> event) {
 			executeButton.setFont(Font.font(Font.getDefault().toString(), FontWeight.BOLD, 20));
 			clusterOutput.setEditable(false);
@@ -162,14 +195,30 @@ public class Kmeans extends Application {
 			this.setContent(root);
 			this.setClosable(false);
 		}
-
 	}
 
+	/**
+	 * Mostra una finestra modale di allerta.
+	 * 
+	 * @param message
+	 *            Il messaggio da mostrare nella finestra.
+	 * @param title
+	 *            Il titolo della finestra.
+	 */
 	private void showAlert(String message, String title) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setHeaderText(message);
 		alert.setTitle(title);
 		alert.showAndWait();
+	}
+
+	/**
+	 * Il main dell'applicazione. Lancia l'interfaccia.
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		launch();
 	}
 
 }

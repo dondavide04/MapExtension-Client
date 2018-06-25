@@ -9,14 +9,30 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * @author PC
- *
+ * La classe Connection gestisce la connessione con il server.
  */
 class Connection {
+	/**
+	 * L'URL del server remoto.
+	 */
 	final private String remoteUrl = "http://mape-env.35smckpbkd.us-east-2.elasticbeanstalk.com/";
+	/**
+	 * l'URL della servlet.
+	 */
 	final private String servletUrl = "Servlet";
+	/**
+	 * Il timeout per la connessione con il server, settato a 2000 ms.
+	 */
 	final private int connectTimeout = 2000;
 
+	/**
+	 * Restituisce lo stream di dati di input della connessione.
+	 * 
+	 * @param parameters
+	 *            I parametri da inviare al server remoto tramite protocollo HTTP.
+	 * @return lo stream di dati di input della connessione
+	 * @throws ServerConnectionFailedException
+	 */
 	ObjectInputStream getConnectionStream(String parameters) throws ServerConnectionFailedException {
 		ObjectInputStream in;
 		URL url;
