@@ -33,7 +33,6 @@ import javafx.stage.Stage;
 /**
  * La classe Kmeans modella l'interfaccia dell'applicazione.
  */
-// $
 class Kmeans extends Application {
 	/**
 	 * La tab relativa al calcolo da database.
@@ -109,7 +108,7 @@ class Kmeans extends Application {
 				try {
 					List<String> saved = (List<String>) in.readObject();
 					loadBox.getItems().setAll(saved);
-				}finally {
+				} finally {
 					in.close();
 				}
 			} catch (IOException | ClassNotFoundException e1) {
@@ -124,14 +123,14 @@ class Kmeans extends Application {
 		loadTab = new OutputTab(loadTabUp, "LOAD", e -> {
 			try {
 				ObjectInputStream in = connection.getConnectionStream("?command=LOAD&loadName=" + loadBox.getValue());
-				try {	
+				try {
 					String result = (String) in.readObject();
 					if (result.startsWith("Errore")) {
 						showAlert(result, "ERRORE");
 					} else {
 						loadTab.clusterOutput.setText(result);
 					}
-				}finally {
+				} finally {
 					in.close();
 				}
 			} catch (IOException | ClassNotFoundException e1) {
