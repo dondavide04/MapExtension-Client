@@ -33,7 +33,8 @@ import javafx.stage.Stage;
 /**
  * La classe Kmeans modella l'interfaccia dell'applicazione.
  */
-public class Kmeans extends Application {
+// $
+class Kmeans extends Application {
 	/**
 	 * La tab relativa al calcolo da database.
 	 */
@@ -73,15 +74,18 @@ public class Kmeans extends Application {
 				if (save.matches(regularExpression) && save.length() <= 50) {
 					ObjectInputStream in = connection.getConnectionStream("?command=DB&tabName=" + tabName.getText()
 							+ "&nCluster=" + nCluster.getText() + "&saveName=" + save);
-					String[] result = (String[]) in.readObject();
-					in.close();
-					if (result[0].startsWith("Errore")) {
-						showAlert(result[0], "ERRORE");
-					} else if (result[0].startsWith("Attenzione")) {
-						showAlert(result[0], "ATTENZIONE");
-						dbTab.clusterOutput.setText(result[1]);
-					} else {
-						dbTab.clusterOutput.setText(result[1]);
+					try {
+						String[] result = (String[]) in.readObject();
+						if (result[0].startsWith("Errore")) {
+							showAlert(result[0], "ERRORE");
+						} else if (result[0].startsWith("Attenzione")) {
+							showAlert(result[0], "ATTENZIONE");
+							dbTab.clusterOutput.setText(result[1]);
+						} else {
+							dbTab.clusterOutput.setText(result[1]);
+						}
+					} finally {
+						in.close();
 					}
 				} else {
 					showAlert("Il nome del salvataggio deve essere una stringa alfanumerica (max 50 char)!", "ERRORE");
@@ -102,9 +106,12 @@ public class Kmeans extends Application {
 		loadBox.setOnMouseClicked(e -> {
 			try {
 				ObjectInputStream in = connection.getConnectionStream("?command=SAVED");
-				List<String> saved = (List<String>) in.readObject();
-				in.close();
-				loadBox.getItems().setAll(saved);
+				try {
+					List<String> saved = (List<String>) in.readObject();
+					loadBox.getItems().setAll(saved);
+				}finally {
+					in.close();
+				}
 			} catch (IOException | ClassNotFoundException e1) {
 				e1.printStackTrace();
 				showAlert("Errore di connessione con il server!", "ERRORE");
@@ -117,12 +124,15 @@ public class Kmeans extends Application {
 		loadTab = new OutputTab(loadTabUp, "LOAD", e -> {
 			try {
 				ObjectInputStream in = connection.getConnectionStream("?command=LOAD&loadName=" + loadBox.getValue());
-				String result = (String) in.readObject();
-				in.close();
-				if (result.startsWith("Errore")) {
-					showAlert(result, "ERRORE");
-				} else {
-					loadTab.clusterOutput.setText(result);
+				try {	
+					String result = (String) in.readObject();
+					if (result.startsWith("Errore")) {
+						showAlert(result, "ERRORE");
+					} else {
+						loadTab.clusterOutput.setText(result);
+					}
+				}finally {
+					in.close();
 				}
 			} catch (IOException | ClassNotFoundException e1) {
 				showAlert("Errore nel caricamento!", "ERRORE");
@@ -168,7 +178,8 @@ public class Kmeans extends Application {
 		 * @param event
 		 *            L'evento associato al bottone.
 		 */
-		OutputTab(Node n, String button, EventHandler<ActionEvent> event) {
+		// $
+		private OutputTab(Node n, String button, EventHandler<ActionEvent> event) {
 			executeButton.setFont(Font.font(Font.getDefault().toString(), FontWeight.BOLD, 20));
 			clusterOutput.setEditable(false);
 			ScrollPane outputPane = new ScrollPane(clusterOutput);
