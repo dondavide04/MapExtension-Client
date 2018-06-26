@@ -33,7 +33,7 @@ import javafx.stage.Stage;
 /**
  * La classe Kmeans modella l'interfaccia dell'applicazione.
  */
-class Kmeans extends Application {
+public class Kmeans extends Application {
 	/**
 	 * La tab relativa al calcolo da database.
 	 */
